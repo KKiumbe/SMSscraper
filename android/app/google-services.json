@@ -1,30 +1,30 @@
 {
-  "project_info": {
-    "project_number": "158542716828",
-    "firebase_url": "https://maryas-7d141-default-rtdb.europe-west1.firebasedatabase.app",
-    "project_id": "maryas-7d141",
-    "storage_bucket": "maryas-7d141.appspot.com"
-  },
-  "client": [
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:158542716828:android:d180b5990816c2f1e4b259",
-        "android_client_info": {
-          "package_name": "com.awesomeproject"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyARDYjfGf1WQra4y0Ejb_VSrK2Dq7sJj30"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
+    "project_info": {
+      "project_number": "273327664875",
+      "firebase_url": "https://phone-app-70c33-default-rtdb.firebaseio.com",
+      "project_id": "phone-app-70c33",
+      "storage_bucket": "phone-app-70c33.appspot.com"
+    },
+    "client": [
+      {
+        "client_info": {
+          "mobilesdk_app_id": "1:273327664875:android:d43c7c0de9f560895a98ae",
+          "android_client_info": {
+            "package_name": "com.awesomeproject"
+          }
+        },
+        "oauth_client": [],
+        "api_key": [
+          {
+            "current_key": "AIzaSyBUJdXAABoRFDQKXcAxFfVWRligZYKZCwk"
+          }
+        ],
+        "services": {
+          "appinvite_service": {
+            "other_platform_oauth_client": []
+          }
         }
       }
-    }
-  ],
-  "configuration_version": "1"
-}
+    ],
+    "configuration_version": "1"
+  }

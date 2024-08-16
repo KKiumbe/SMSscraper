@@ -1,9 +1,12 @@
+
 import React, { useEffect, useState } from 'react';
 import { PermissionsAndroid, Platform, View, Text, ScrollView } from 'react-native';
 import SmsListener from 'react-native-android-sms-listener';
-import { db } from './firebaseConfig'; // Import your Firebase configuration
-import { addDoc, firebase } from '@react-native-firebase/firestore';
-import { collection } from '@firebase/firestore';
+import { db } from './firebaseConfig';
+import { addDoc, collection } from 'firebase/firestore';
+import { firebase } from '@react-native-firebase/database';
+
+
 
 const App = () => {
   const [smsDetails, setSmsDetails] = useState([]);
@@ -78,9 +81,7 @@ const App = () => {
       console.log(db);  // Should log a Firestore instance
 
       await addDoc(smsCollectionRef, {
-        ...data,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      });
+        ...data});
       console.log('SMS details saved successfully!');
     } catch (error) {
       if (error.code === 'permission-denied') {
