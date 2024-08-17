@@ -1,7 +1,7 @@
 import NetInfo from '@react-native-community/netinfo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
-import { db } from './firebaseConfig';
+import { db } from '../config/firebaseConfig';
 
 const uploadPendingData = async () => {
   const netInfo = await NetInfo.fetch();

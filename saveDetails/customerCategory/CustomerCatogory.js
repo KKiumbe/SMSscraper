@@ -1,5 +1,5 @@
 import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
-import { db } from './firebaseConfig';  // Your Firestore configuration
+import { db } from '../../config/firebaseConfig';  // Your Firestore configuration
 
 const categorizeCustomer = async (phoneNumber, lowThreshold, averageThreshold, highThreshold) => {
   const transactionsCollectionRef = collection(db, 'monthlyTransactions');

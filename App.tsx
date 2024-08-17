@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import FontAwesome from 'react-native-vector-icons/FontAwesome'; // Import FontAwesome
-import HomeScreen from './Home';
+import HomeScreen from './views/Home';
 import Transaction from './componets/transactions';
 
 const Stack = createStackNavigator();

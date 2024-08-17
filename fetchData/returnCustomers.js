@@ -1,6 +1,6 @@
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from './firebaseConfig';  // Your Firestore configuration
 import moment from 'moment';  // For date manipulation
+import { db } from '../config/firebaseConfig';
 
 const getReturningCustomerCount = async () => {
   const transactionsCollectionRef = collection(db, 'Transactions');

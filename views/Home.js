@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Button, StyleSheet, SafeAreaView } from 'react-native';
 import ProgressCircle from 'react-native-progress/Circle'; // Import the ProgressCircle component
-import getReturningCustomerCount from './returnCustomers';
-import { fetchCustomerCount, fetchNewCustomers } from './fetchCustomers';
+import getReturningCustomerCount from '../fetchData/returnCustomers';
+import { fetchCustomerCount, fetchNewCustomers } from '../fetchData/fetchCustomers';
+
 
 const Stats = ({ newCustomers, returningCustomers, allContacts }) => {
   return (

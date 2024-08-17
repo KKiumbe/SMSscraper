@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView } from 'react-native';
 
 import TransactionTable from './ TransactionTable';
-import { db } from '../firebaseConfig';
+import { db } from '../config/firebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
 
 const Transaction = () => {

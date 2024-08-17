@@ -3,15 +3,15 @@ import { PermissionsAndroid, Platform, View, Text, ScrollView } from 'react-nati
 import SmsListener from 'react-native-android-sms-listener';
 import NetInfo from '@react-native-community/netinfo'; // Import NetInfo for network status
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage for local storage
-import { db } from './firebaseConfig';
+import { db } from '../config/firebaseConfig';
 import { addDoc, collection } from 'firebase/firestore';
-import sendSmsToApi from './SMSsender';
+import sendSmsToApi from '../SMSsender';
 
-import extractSmsDetails from './extractSmsDetails';
-import uploadPendingData from './uploadPendingData';
-import saveSmsDetailsLocally from './saveSmsDetailsLocally';
-import saveTransactionToFirestore from './saveTransactions';
-import Transaction from './componets/transactions';
+import extractSmsDetails from '../saveDetails/extractSmsDetails';
+import uploadPendingData from '../saveDetails/uploadPendingData';
+import saveSmsDetailsLocally from '../saveDetails/saveSmsDetailsLocally';
+import saveTransactionToFirestore from '../saveDetails/saveTransactions';
+import Transaction from '../componets/transactions';
 
 
 const Payments  = () => {

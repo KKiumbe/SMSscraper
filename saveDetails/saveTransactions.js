@@ -1,5 +1,5 @@
 import { collection, addDoc } from 'firebase/firestore';
-import { db } from './firebaseConfig';  // Your Firestore configuration
+import { db } from '../config/firebaseConfig';  // Your Firestore configuration
 
 const saveTransactionToFirestore = async (data) => {
   try {
