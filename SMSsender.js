@@ -23,9 +23,9 @@ const sendSmsToApi = async (smsDetails) => {
     const formattedPhoneNumber = formatPhoneNumber(smsDetails.phoneNumber);
 
     const response = await axios.post(SMS_API_ENDPOINT, {
-      apikey: SMS_API_KEY,
+     apikey: SMS_API_KEY,
       partnerID: PARTNER_ID,
-      message: `Hi ${smsDetails.firstName}, we received your payment of ${smsDetails.amountPaid}.`,
+      message: `Hi ${smsDetails.name}, we received your payment of ${smsDetails.amountPaid}. Enyoy 2 cheese burgers with fries @ 1199 and Two large loaded fries @ 1000 daily. Call 0741549463 to order`,
       shortcode: SHORTCODE,
       mobile: formattedPhoneNumber,
     }, {

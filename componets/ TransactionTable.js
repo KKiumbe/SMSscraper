@@ -6,13 +6,21 @@ const TransactionTable = ({ transactions }) => {
   // Define table headers
   const tableHead = ['Name', 'Phone Number', 'Amount Paid', 'Date'];
 
+  const getCurrentDateTime = () => {
+    const now = new Date();
+    // Format the date and time as YYYY-MM-DD HH:MM:SS
+    return now.toISOString().replace('T', ' ').slice(0, 19);
+  };
+  
   // Map transactions to table rows
   const tableData = transactions.map(transaction => [
-    transaction.name,  // Include the name first
+    transaction.name, // Include the name first
     transaction.phoneNumber,
     transaction.amountPaid,
-    new Date(transaction.timestamp).toLocaleDateString(), // Format timestamp
+    getCurrentDateTime(), // Use the current date and time
   ]);
+  
+  
 
   return (
     <ScrollView style={styles.container}>

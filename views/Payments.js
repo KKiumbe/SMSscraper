@@ -1,21 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { PermissionsAndroid, Platform, View, Text, ScrollView } from 'react-native';
+// Payments.js
+import React, { useEffect } from 'react';
+import { PermissionsAndroid, Platform, SafeAreaView, StyleSheet, Text } from 'react-native';
 import SmsListener from 'react-native-android-sms-listener';
-import NetInfo from '@react-native-community/netinfo'; // Import NetInfo for network status
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage for local storage
-import { db } from '../config/firebaseConfig';
-import { addDoc, collection } from 'firebase/firestore';
-import sendSmsToApi from '../SMSsender';
-
-import extractSmsDetails from '../saveDetails/extractSmsDetails';
-import uploadPendingData from '../saveDetails/uploadPendingData';
-import saveSmsDetailsLocally from '../saveDetails/saveSmsDetailsLocally';
 import saveTransactionToFirestore from '../saveDetails/saveTransactions';
-import Transaction from '../componets/transactions';
+import sendSmsToApi from '../SMSsender';
+import saveSmsDetailsLocally from '../saveDetails/saveSmsDetailsLocally';
+import uploadPendingData from '../saveDetails/uploadPendingData';
+import extractSmsDetails from '../saveDetails/extractSmsDetails';
+import useFetchTransactions from '../fetchData/useFetchTransactions';
+import TransactionTable from '../componets/ TransactionTable';
 
 
-const Payments  = () => {
-  const [smsDetails, setSmsDetails] = useState([]);
+const Payments = () => {
+  const { transactions, loading, error } = useFetchTransactions();
 
   useEffect(() => {
     const requestSmsPermission = async () => {
@@ -53,19 +50,13 @@ const Payments  = () => {
 
       const extractedData = extractSmsDetails(messageBody);
       console.log('Extracted Data:', extractedData);
-
-      setSmsDetails((prevDetails) => [extractedData, ...prevDetails]);
-
-      await saveTransactionToFirestore(extractedData);
-
       await sendSmsToApi(extractedData);
 
-      // Save data locally first
+      // Save data directly
+      await saveTransactionToFirestore(extractedData);
+      await sendSmsToApi(extractedData);
       await saveSmsDetailsLocally(extractedData);
-
-      // Attempt to upload to Firestore
       await uploadPendingData();
-    
     });
 
     return () => {
@@ -73,14 +64,27 @@ const Payments  = () => {
     };
   }, []);
 
+  if (loading) {
+    return <SafeAreaView style={styles.container}><Text>Loading...</Text></SafeAreaView>;
+  }
 
-
+  if (error) {
+    return <SafeAreaView style={styles.container}><Text>Error: {error.message}</Text></SafeAreaView>;
+  }
 
   return (
-    <ScrollView>
-   <Transaction/>
-    </ScrollView>
+    <SafeAreaView style={styles.container}>
+      <TransactionTable transactions={transactions} />
+    </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: '#f6f6f6',
+  },
+});
 
 export default Payments;

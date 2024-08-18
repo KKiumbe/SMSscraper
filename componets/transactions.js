@@ -1,49 +1,38 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet} from 'react-native';
 
 import TransactionTable from './ TransactionTable';
-import { db } from '../config/firebaseConfig';
-import { collection, getDocs } from 'firebase/firestore';
+
+import useFetchTransactions from '../fetchData/useFetchTransactions';
 
 const Transaction = () => {
-  const [transactions, setTransactions] = useState([]);
+  const { transactions, loading, error } = useFetchTransactions();
 
-  useEffect(() => {
-    const fetchTransactions = async () => {
-      try {
-        // Reference to the Firestore collection
-        const transactionsCollectionRef = collection(db, 'Transactions');
+  if (loading) {
+    return <ActivityIndicator size="large" color="#0000ff" />;
+  }
 
-        // Fetch documents from the collection
-        const snapshot = await getDocs(transactionsCollectionRef);
-
-        if (!snapshot.empty) {
-          // Map documents to an array of transaction objects
-          const transactionsArray = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-          }));
-
-          setTransactions(transactionsArray);
-        } else {
-          console.log('No transactions found.');
-        }
-      } catch (error) {
-        console.error('Error fetching transactions:', error);
-      }
-    };
-
-    fetchTransactions();
-  }, []);
+  if (error) {
+    return <Text>Error loading transactions: {error.message}</Text>;
+  }
 
   return (
-    <ScrollView>
-      <View style={{ flex: 1 }}>
-        <Text style={{ textAlign: 'center', fontSize: 20, margin: 20 }}>Monthly Transactions</Text>
+    <View style={styles.container}>
+      {transactions.length > 0 ? (
         <TransactionTable transactions={transactions} />
-      </View>
-    </ScrollView>
+      ) : (
+        <Text>No transactions available</Text>
+      )}
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: '#f8f8f8',
+  },
+});
 
 export default Transaction;

@@ -1,81 +1,75 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, Text, Button, StyleSheet, SafeAreaView } from 'react-native';
-import ProgressCircle from 'react-native-progress/Circle'; // Import the ProgressCircle component
-import getReturningCustomerCount from '../fetchData/returnCustomers';
-import { fetchCustomerCount, fetchNewCustomers } from '../fetchData/fetchCustomers';
-
+import ProgressCircle from 'react-native-progress/Circle';
+import useFetchNewCustomers from '../fetchData/useFetchNewCustomers';
+import useFetchReturningCustomers from '../fetchData/useFetchReturningCustomers';
+import useFetchCustomerCount from '../fetchData/useFetchCustomerCount';
 
 const Stats = ({ newCustomers, returningCustomers, allContacts }) => {
+
+  const getMonthName = () => {
+    const now = new Date();
+    const options = { month: 'long' };
+    return now.toLocaleDateString(undefined, options);
+  };
   return (
     <View style={styles.statsContainer}>
       <Text style={styles.statsTitle}>Your Stats</Text>
       <View style={styles.stats}>
         <View style={styles.statsItem}>
           <ProgressCircle
-            progress={newCustomers / 200} // Assuming 200 as max value
-            size={100} // Set the size to be the same for all
+            size={100}
             borderWidth={8}
             color={'#27ae60'}
             unfilledColor={'#e1e1e1'}
             strokeCap={'round'}
+            progress={newCustomers / 100}  // Ensure the circle is filled based on newCustomers
             formatText={() => `${newCustomers}`}
             textStyle={styles.progressText}
           />
-          <Text style={styles.statsLabel}>New Customers</Text>
+          <Text style={styles.statsLabel}>{newCustomers} New Customers this {getMonthName()}</Text>
         </View>
         <View style={styles.statsItem}>
           <ProgressCircle
-            progress={returningCustomers / 100} // Assuming 100 as max value
-            size={100} // Set the size to be the same for all
+            size={100}
             borderWidth={8}
             color={'#2980b9'}
             unfilledColor={'#e1e1e1'}
             strokeCap={'round'}
+            progress={allContacts > 0 ? (returningCustomers / allContacts) : 0}  // Ensure the circle is filled based on returningCustomers
             formatText={() => `${returningCustomers}`}
             textStyle={styles.progressText}
           />
-          <Text style={styles.statsLabel}>Returning Customers</Text>
+          <Text style={styles.statsLabel}>{returningCustomers} Returning Customers</Text>
         </View>
         <View style={styles.statsItem}>
           <ProgressCircle
-            progress={allContacts / 1000} // Assuming 1000 as max value
-            size={100} // Set the size to be the same for all
+            size={100}
             borderWidth={8}
             color={'#c0392b'}
             unfilledColor={'#e1e1e1'}
             strokeCap={'round'}
+            progress={1}  // Full circle for allContacts
             formatText={() => `${allContacts}`}
             textStyle={styles.progressText}
           />
-          <Text style={styles.statsLabel}>All Contacts</Text>
+          <Text style={styles.statsLabel}>You have {allContacts} Contacts</Text>
         </View>
       </View>
     </View>
   );
 };
 
-const HomeScreen = ({ navigation }) => {
-  const [newCustomers, setNewCustomers] = useState(0);
-  const [returningCustomers, setReturningCustomers] = useState(0);
-  const [allContacts, setAllContacts] = useState(0);
+const Dashboard = ({ navigation }) => {
+  const newCustomers = useFetchNewCustomers();
+  const returningCustomers = useFetchReturningCustomers();
+  const allContacts = useFetchCustomerCount();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const customerCount = await fetchCustomerCount();
-        const newCustomerCount = await fetchNewCustomers();
-        const returningCustomerCount = await getReturningCustomerCount();
+  console.log(newCustomers)
+  console.log(returningCustomers)
+  console.log(allContacts)
 
-        setAllContacts(customerCount);
-        setNewCustomers(newCustomerCount);
-        setReturningCustomers(returningCustomerCount);
-      } catch (error) {
-        console.error('Error fetching stats:', error);
-      }
-    };
 
-    fetchData();
-  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -110,13 +104,13 @@ const styles = StyleSheet.create({
   stats: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    alignItems: 'center', // Center items vertically
+    alignItems: 'center',
   },
   statsItem: {
     alignItems: 'center',
   },
   statsLabel: {
-    fontSize: 15,
+    fontSize: 10,
     fontWeight: '500',
     color: '#000',
     marginTop: 8,
@@ -128,4 +122,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HomeScreen;
+export default Dashboard;
