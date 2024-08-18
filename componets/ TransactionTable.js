@@ -1,35 +1,100 @@
-import React from 'react';
-import { View, ScrollView, StyleSheet } from 'react-native';
-import { Table, Row, Rows } from 'react-native-table-component';
+import React, { useState } from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { DataTable, Text, Button, Dialog, Portal } from 'react-native-paper';
 
 const TransactionTable = ({ transactions }) => {
-  // Define table headers
-  const tableHead = ['Name', 'Phone Number', 'Amount Paid', 'Date'];
+  const [visible, setVisible] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
 
-  const getCurrentDateTime = () => {
-    const now = new Date();
-    // Format the date and time as YYYY-MM-DD HH:MM:SS
-    return now.toISOString().replace('T', ' ').slice(0, 19);
+  // Helper function to format the date as 'Sunday, 18th'
+  const formatDate = (timestamp) => {
+    const date = new Date(parseInt(timestamp));
+    const options = { weekday: 'long', day: 'numeric', month: 'long' };
+    return date.toLocaleDateString('en-US', options);
   };
-  
-  // Map transactions to table rows
-  const tableData = transactions.map(transaction => [
-    transaction.name, // Include the name first
-    transaction.phoneNumber,
-    transaction.amountPaid,
-    getCurrentDateTime(), // Use the current date and time
-  ]);
-  
-  
+
+  // Group transactions by formatted date
+  const groupedTransactions = transactions.reduce((groups, transaction) => {
+    const date = formatDate(transaction.timestamp);
+    if (!groups[date]) {
+      groups[date] = [];
+    }
+    groups[date].push(transaction);
+    return groups;
+  }, {});
+
+  // Format time as HH:MM
+  const formatTime = (timestamp) => {
+    const date = new Date(parseInt(timestamp));
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
+  };
+
+  // Show modal with transaction details
+  const showDetails = (transaction) => {
+    setSelectedTransaction(transaction);
+    setVisible(true);
+  };
+
+  // Hide modal
+  const hideDetails = () => {
+    setVisible(false);
+    setSelectedTransaction(null);
+  };
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.tableContainer}>
-        <Table borderStyle={styles.tableBorder}>
-          <Row data={tableHead} style={styles.header} textStyle={styles.headerText} />
-          <Rows data={tableData} textStyle={styles.rowText} />
-        </Table>
-      </View>
+      {Object.keys(groupedTransactions).map((date) => (
+        <React.Fragment key={date}>
+          <Text style={styles.dateText}>{date}</Text>
+          <DataTable style={styles.table}>
+            <DataTable.Header>
+              <DataTable.Title>Name</DataTable.Title>
+              <DataTable.Title>Number</DataTable.Title>
+              <DataTable.Title style={styles.amountColumn}>Amount</DataTable.Title>
+              <DataTable.Title style={styles.timeColumn}>Time</DataTable.Title>
+            </DataTable.Header>
+
+            {groupedTransactions[date].map((transaction, index) => (
+              <DataTable.Row
+                key={index}
+                onPress={() => showDetails(transaction)}
+              >
+                <DataTable.Cell>{transaction.name}</DataTable.Cell>
+                <DataTable.Cell>{transaction.phoneNumber}</DataTable.Cell>
+                <DataTable.Cell style={styles.amountColumn}>
+                  {transaction.amountPaid}
+                </DataTable.Cell>
+                <DataTable.Cell style={styles.timeColumn}>
+                  {formatTime(transaction.timestamp)}
+                </DataTable.Cell>
+              </DataTable.Row>
+            ))}
+          </DataTable>
+          <Text style={styles.space}></Text>
+        </React.Fragment>
+      ))}
+
+      <Portal>
+        <Dialog visible={visible} onDismiss={hideDetails}>
+          <Dialog.Title>Transaction Details</Dialog.Title>
+          <Dialog.Content>
+            {selectedTransaction && (
+              <View style={styles.modalContent}>
+                <Text>Name: {selectedTransaction.name}</Text>
+                <Text>Number: {selectedTransaction.phoneNumber}</Text>
+                <Text>Amount: {selectedTransaction.amountPaid}</Text>
+                <Text>Time: {formatTime(selectedTransaction.timestamp)}</Text>
+                {/* Add more fields as needed */}
+              </View>
+            )}
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={hideDetails}>Close</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
     </ScrollView>
   );
 };
@@ -38,39 +103,37 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f8f8',
-  },
-  tableContainer: {
     padding: 16,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
-  tableBorder: {
-    borderWidth: 1,
-    borderColor: '#c8e1ff',
-  },
-  header: {
-    height: 50,
-    backgroundColor: '#f1f8ff',
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
-  },
-  headerText: {
-    textAlign: 'center',
+  dateText: {
     fontWeight: 'bold',
-    fontSize: 16,
-    color: '#333',
+    fontSize: 18,
+    marginTop: 20,
+    marginBottom: 10,
+    color: '#000', // Dark color for better visibility
   },
-  rowText: {
-    textAlign: 'center',
-    fontSize: 14,
-    color: '#555',
-    paddingVertical: 8,
+  table: {
+    backgroundColor: '#fff', // White background for the table
+    borderRadius: 8,
+    marginBottom: 20,
+  },
+  amountColumn: {
+    flex: 1,
+    paddingLeft: 20, // Space between columns
+    color: '#000', // Dark color for text
+  },
+  timeColumn: {
+    flex: 1,
+    paddingLeft: 20, // Space between columns
+    color: '#000', // Dark color for text
+  },
+  space: {
+    height: 20,
+  },
+  modalContent: {
+    padding: 16,
   },
 });
+
 
 export default TransactionTable;

@@ -9,6 +9,7 @@ import uploadPendingData from '../saveDetails/uploadPendingData';
 import extractSmsDetails from '../saveDetails/extractSmsDetails';
 import useFetchTransactions from '../fetchData/useFetchTransactions';
 import TransactionTable from '../componets/ TransactionTable';
+import { Provider as PaperProvider } from 'react-native-paper';
 
 
 const Payments = () => {
@@ -74,7 +75,12 @@ const Payments = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <TransactionTable transactions={transactions} />
+       <PaperProvider> 
+       <TransactionTable transactions={transactions} />
+         </PaperProvider>
+
+ 
+
     </SafeAreaView>
   );
 };
