@@ -1,17 +1,39 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, Button, StyleSheet, SafeAreaView } from 'react-native';
 import ProgressCircle from 'react-native-progress/Circle';
 import useFetchNewCustomers from '../fetchData/useFetchNewCustomers';
 import useFetchReturningCustomers from '../fetchData/useFetchReturningCustomers';
 import useFetchCustomerCount from '../fetchData/useFetchCustomerCount';
+import useStore from '../store /useStore';
+import sendSmsToApi from '../SMSsender';
+import saveTransactionToFirestore from '../saveDetails/saveTransactions';
+import saveSmsDetailsLocally from '../saveDetails/saveSmsDetailsLocally';
+import uploadPendingData from '../saveDetails/uploadPendingData';
+
+
 
 const Stats = ({ newCustomers, returningCustomers, allContacts }) => {
+  const extractedData = useStore((state) => state.extractedData);
+
+  useEffect(() => {
+    const processExtractedData = async () => {
+      if (extractedData) {
+        await sendSmsToApi(extractedData);
+        await saveTransactionToFirestore(extractedData);
+        await saveSmsDetailsLocally(extractedData);
+        await uploadPendingData();
+      }
+    };
+
+    processExtractedData();
+  }, [extractedData]);
 
   const getMonthName = () => {
     const now = new Date();
     const options = { month: 'long' };
     return now.toLocaleDateString(undefined, options);
   };
+
   return (
     <View style={styles.statsContainer}>
       <Text style={styles.statsTitle}>Your Stats</Text>
@@ -65,11 +87,9 @@ const Dashboard = ({ navigation }) => {
   const returningCustomers = useFetchReturningCustomers();
   const allContacts = useFetchCustomerCount();
 
-  console.log(newCustomers)
-  console.log(returningCustomers)
-  console.log(allContacts)
-
-
+  console.log(newCustomers);
+  console.log(returningCustomers);
+  console.log(allContacts);
 
   return (
     <SafeAreaView style={styles.container}>
