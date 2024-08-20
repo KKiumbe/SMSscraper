@@ -1,15 +1,19 @@
-// App.js
 import React, { useEffect } from 'react';
 import { Platform, PermissionsAndroid } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import Dashboard from './views/Dashboard';
-import Payments from './views/Payments';
 import SmsListener from 'react-native-android-sms-listener';
-import extractSmsDetails from './saveDetails/extractSmsDetails';  // Correct the path if needed
 import useStore from './store /useStore';
+import extractSmsDetails from './saveDetails/extractSmsDetails';
+import sendSmsToApi from './SMSsender';
+import saveTransactionToFirestore from './saveDetails/saveTransactions';
+import saveSmsDetailsLocally from './saveDetails/saveSmsDetailsLocally';
+import uploadPendingData from './saveDetails/uploadPendingData';
+import Payments from './views/Payments';
+import Dashboard from './views/Dashboard';
+
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -30,7 +34,7 @@ const HomeStack = () => (
 );
 
 const App = () => {
-  const { setExtractedData } = useStore((state) => state);
+  const { setExtractedData, extractedData } = useStore((state) => state);
 
   useEffect(() => {
     const requestSmsPermission = async () => {
@@ -67,6 +71,12 @@ const App = () => {
 
         // Store the extracted data in global state
         setExtractedData(extractedData);
+
+        // Perform async actions after extracting data
+        await sendSmsToApi(extractedData);
+        await saveTransactionToFirestore(extractedData);
+        await saveSmsDetailsLocally(extractedData);
+        await uploadPendingData();
       } catch (err) {
         console.error('Error extracting data:', err);
       }
@@ -79,7 +89,7 @@ const App = () => {
     return () => {
       subscription.remove();
     };
-  }, [setExtractedData]);
+  }, [setExtractedData, extractedData]);
 
   return (
     <NavigationContainer>
