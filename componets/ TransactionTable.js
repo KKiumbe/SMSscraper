@@ -13,16 +13,6 @@ const TransactionTable = ({ transactions }) => {
     return date.toLocaleDateString('en-US', options);
   };
 
-  // Group transactions by formatted date
-  const groupedTransactions = transactions.reduce((groups, transaction) => {
-    const date = formatDate(transaction.timestamp);
-    if (!groups[date]) {
-      groups[date] = [];
-    }
-    groups[date].push(transaction);
-    return groups;
-  }, {});
-
   // Format time as HH:MM
   const formatTime = (timestamp) => {
     const date = new Date(parseInt(timestamp));
@@ -30,6 +20,19 @@ const TransactionTable = ({ transactions }) => {
     const minutes = date.getMinutes().toString().padStart(2, '0');
     return `${hours}:${minutes}`;
   };
+
+  // Sort transactions by timestamp in descending order
+  const sortedTransactions = [...transactions].sort((a, b) => b.timestamp - a.timestamp);
+
+  // Group transactions by formatted date
+  const groupedTransactions = sortedTransactions.reduce((groups, transaction) => {
+    const date = formatDate(transaction.timestamp);
+    if (!groups[date]) {
+      groups[date] = [];
+    }
+    groups[date].push(transaction);
+    return groups;
+  }, {});
 
   // Show modal with transaction details
   const showDetails = (transaction) => {
@@ -134,6 +137,5 @@ const styles = StyleSheet.create({
     padding: 16,
   },
 });
-
 
 export default TransactionTable;

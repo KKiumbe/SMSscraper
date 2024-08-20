@@ -4,7 +4,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import SmsListener from 'react-native-android-sms-listener';
+import SmsListener from 'react-native-android-sms-listener'
+
 import useStore from './store /useStore';
 import extractSmsDetails from './saveDetails/extractSmsDetails';
 import sendSmsToApi from './SMSsender';
