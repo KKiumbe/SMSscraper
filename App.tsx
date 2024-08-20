@@ -1,12 +1,15 @@
 // App.js
-import React from 'react';
+import React, { useEffect } from 'react';
+import { Platform, PermissionsAndroid } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Dashboard from './views/Dashboard';
 import Payments from './views/Payments';
-
+import SmsListener from 'react-native-android-sms-listener';
+import extractSmsDetails from './saveDetails/extractSmsDetails';  // Correct the path if needed
+import useStore from './store /useStore';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -27,6 +30,57 @@ const HomeStack = () => (
 );
 
 const App = () => {
+  const { setExtractedData } = useStore((state) => state);
+
+  useEffect(() => {
+    const requestSmsPermission = async () => {
+      if (Platform.OS === 'android') {
+        try {
+          const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.RECEIVE_SMS,
+            {
+              title: 'SMS Permission',
+              message: 'This app needs access to receive SMS messages.',
+              buttonNeutral: 'Ask Me Later',
+              buttonNegative: 'Cancel',
+              buttonPositive: 'OK',
+            }
+          );
+          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+            console.log('SMS receive permission granted');
+          } else {
+            console.log('SMS receive permission denied');
+          }
+        } catch (err) {
+          console.warn('Permission request error:', err);
+        }
+      }
+    };
+
+    const handleSmsReceived = async (message) => {
+      console.log('Received SMS:', message);
+      const messageBody = message.body;
+
+      try {
+        const extractedData = extractSmsDetails(messageBody);
+        console.log('Extracted Data:', extractedData);
+
+        // Store the extracted data in global state
+        setExtractedData(extractedData);
+      } catch (err) {
+        console.error('Error extracting data:', err);
+      }
+    };
+
+    requestSmsPermission();
+
+    const subscription = SmsListener.addListener(handleSmsReceived);
+
+    return () => {
+      subscription.remove();
+    };
+  }, [setExtractedData]);
+
   return (
     <NavigationContainer>
       <Tab.Navigator
