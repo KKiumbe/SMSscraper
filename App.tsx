@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Platform, PermissionsAndroid } from 'react-native';
+import { Platform, PermissionsAndroid, Alert, Linking } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -13,7 +13,7 @@ import saveSmsDetailsLocally from './saveDetails/saveSmsDetailsLocally';
 import uploadPendingData from './saveDetails/uploadPendingData';
 import Payments from './views/Payments';
 import Dashboard from './views/Dashboard';
-
+import getSmsDetailsFromLocalStorage from './fetchData/getSmsDetailsFromLocalStorage';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -34,7 +34,7 @@ const HomeStack = () => (
 );
 
 const App = () => {
-  const { setExtractedData, extractedData } = useStore((state) => state);
+  const { setExtractedData} = useStore((state) => state);
 
   useEffect(() => {
     const requestSmsPermission = async () => {
@@ -60,37 +60,58 @@ const App = () => {
         }
       }
     };
-
+  
     const handleSmsReceived = async (message) => {
       console.log('Received SMS:', message);
       const messageBody = message.body;
-
+  
       try {
         const extractedData = extractSmsDetails(messageBody);
         console.log('Extracted Data:', extractedData);
-
+  
         // Store the extracted data in global state
         setExtractedData(extractedData);
-
+  
         // Perform async actions after extracting data
         await sendSmsToApi(extractedData);
         await saveTransactionToFirestore(extractedData);
         await saveSmsDetailsLocally(extractedData);
         await uploadPendingData();
+  
       } catch (err) {
         console.error('Error extracting data:', err);
       }
     };
-
+  
     requestSmsPermission();
-
+  
     const subscription = SmsListener.addListener(handleSmsReceived);
-
+  
+    // Polling function to process unprocessed SMS details
+    const pollLocalStorage = async () => {
+      try {
+        const pendingSmsDetails = await getSmsDetailsFromLocalStorage();
+        if (pendingSmsDetails) {
+          for (const data of pendingSmsDetails) {
+            await sendSmsToApi(data);
+            await saveTransactionToFirestore(data);
+            await uploadPendingData();
+          }
+        }
+      } catch (err) {
+        console.error('Error polling local storage:', err);
+      }
+    };
+  
+    // Set interval to poll local storage every minute
+    const intervalId = setInterval(pollLocalStorage, 60000);
+  
     return () => {
       subscription.remove();
+      clearInterval(intervalId);
     };
-  }, [setExtractedData, extractedData]);
-
+  }, [setExtractedData]);
+  
   return (
     <NavigationContainer>
       <Tab.Navigator
