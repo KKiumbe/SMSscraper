@@ -68,18 +68,18 @@ const Stats = ({ newCustomers, returningCustomers, allContacts }) => {
 const Dashboard = ({ navigation }) => {
   const newCustomers = useFetchNewCustomers();
   const returningCustomers = useFetchReturningCustomers();
-  const allContacts = useFetchCustomerCount();
+  const {count} = useFetchCustomerCount();
 
   console.log(newCustomers);
   console.log(returningCustomers);
-  console.log(allContacts);
+  console.log(count);
 
   return (
     <SafeAreaView style={styles.container}>
       <Stats
         newCustomers={newCustomers}
         returningCustomers={returningCustomers}
-        allContacts={allContacts}
+        allContacts={count}
       />
       <Button
         title="Go to Transaction"

@@ -1,45 +1,75 @@
 import { useState, useEffect } from 'react';
 import { collection, query, where, onSnapshot, Timestamp } from 'firebase/firestore';
-import moment from 'moment';
 import { db } from '../config/firebaseConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const useFetchReturningCustomers = () => {
-  const [returningCustomers, setReturningCustomers] = useState(0);
+  const [returningCustomers, setReturningCustomers] = useState([]);
 
   useEffect(() => {
-    const transactionsCollectionRef = collection(db, 'Transactions');
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-    const q = query(
-      transactionsCollectionRef,
-      where('timestamp', '>=', Timestamp.fromDate(startOfMonth)),
-      where('timestamp', '<=', Timestamp.fromDate(endOfMonth))
-    );
-
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const customerTransactionCount = {};
-
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        const phoneNumber = data.phoneNumber;
-
-        if (!customerTransactionCount[phoneNumber]) {
-          customerTransactionCount[phoneNumber] = 0;
+    const fetchReturningCustomers = async () => {
+      try {
+        // Check local storage for cached data
+        const cachedData = await AsyncStorage.getItem('returningCustomers');
+        if (cachedData) {
+          setReturningCustomers(JSON.parse(cachedData));
         }
-        customerTransactionCount[phoneNumber]++;
-      });
 
-      const returningCustomerCount = Object.values(customerTransactionCount).filter(count => count > 2).length;
-      setReturningCustomers(returningCustomerCount);
-    }, (error) => {
-      console.error('Error retrieving returning customer count:', error);
-      setReturningCustomers(0);
-    });
+        const transactionsCollectionRef = collection(db, 'Transactions');
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-    // Clean up subscription on unmount
-    return () => unsubscribe();
+        const q = query(
+          transactionsCollectionRef,
+          where('timestamp', '>=', Timestamp.fromDate(startOfMonth)),
+          where('timestamp', '<=', Timestamp.fromDate(endOfMonth))
+        );
+
+        const unsubscribe = onSnapshot(q, async (querySnapshot) => {
+          const customerTransactionCount = {};
+
+          querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            const phoneNumber = data.phoneNumber;
+            const name = data.name;  // Assuming 'name' is stored in the transaction document
+
+            if (!customerTransactionCount[phoneNumber]) {
+              customerTransactionCount[phoneNumber] = {
+                name,
+                count: 0
+              };
+            }
+
+            customerTransactionCount[phoneNumber].count++;
+          });
+
+          const returningCustomersData = Object.values(customerTransactionCount)
+            .filter(customer => customer.count > 2)
+            .map(customer => ({
+              name: customer.name,
+              phoneNumber: customer.phoneNumber,
+            }));
+
+          setReturningCustomers(returningCustomersData);
+
+          // Cache the data in local storage
+          await AsyncStorage.setItem('returningCustomers', JSON.stringify(returningCustomersData));
+          console.log(returningCustomersData);
+        }, (error) => {
+          console.error('Error retrieving returning customers:', error);
+          setReturningCustomers([]);
+        });
+
+        // Clean up subscription on unmount
+        return () => unsubscribe();
+      } catch (error) {
+        console.error('Error fetching returning customers:', error);
+        setReturningCustomers([]);
+      }
+    };
+
+    fetchReturningCustomers();
   }, []);
 
   return returningCustomers;
