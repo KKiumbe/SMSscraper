@@ -4,25 +4,33 @@ const extractSmsDetails = (messageBody) => {
   const uppercasedMessageBody = messageBody.toUpperCase();
 
   // Define regular expressions
+  const transactionCodeRegex = /^[A-Z0-9]{10}/; // Matches the transaction code at the beginning of the message
   const amountRegex = /KSH(\d{1,3}(,\d{3})*(\.\d{2})?)/;
   const namePhoneRegex = /FROM ([A-Z\s]+) (\+?\d{9,12})/;
+  const timePaidRegex = /ON \d{1,2}\/\d{1,2}\/\d{2} AT \d{1,2}:\d{2} (AM|PM)/; // Matches the date and time pattern
 
-  // Match the amount and name/phone number
+  // Match the transaction code, amount, name/phone number, and time paid
+  const transactionCodeMatch = uppercasedMessageBody.match(transactionCodeRegex);
   const amountMatch = uppercasedMessageBody.match(amountRegex);
   const namePhoneMatch = uppercasedMessageBody.match(namePhoneRegex);
+  const timePaidMatch = uppercasedMessageBody.match(timePaidRegex);
 
   // Extract details or default to 'N/A'
+  const transactionCode = transactionCodeMatch ? transactionCodeMatch[0] : 'N/A';
   const amountPaid = amountMatch ? amountMatch[1] : 'N/A';
   let name = namePhoneMatch ? namePhoneMatch[1].trim() : 'N/A';
   let phoneNumber = namePhoneMatch ? namePhoneMatch[2] : 'N/A';
+  const timePaid = timePaidMatch ? timePaidMatch[0] : 'N/A';
 
-  // No need to split name into first and last names
-  console.log(`${amountPaid} , ${name}, ${phoneNumber}`);
+  // Log the extracted details
+  console.log(`Transaction Code: ${transactionCode}, Amount: ${amountPaid}, Name: ${name}, Phone Number: ${phoneNumber}, Time Paid: ${timePaid}`);
   
   return {
+    transactionCode,
     amountPaid,
     name,          // Single name field
     phoneNumber,
+    timePaid,
   };
 };
 

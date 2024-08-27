@@ -53,10 +53,11 @@ const TransactionTable = ({ transactions }) => {
           <Text style={styles.dateText}>{date}</Text>
           <DataTable style={styles.table}>
             <DataTable.Header>
+              <DataTable.Title>Transaction Code</DataTable.Title>
               <DataTable.Title>Name</DataTable.Title>
               <DataTable.Title>Number</DataTable.Title>
               <DataTable.Title style={styles.amountColumn}>Amount</DataTable.Title>
-              <DataTable.Title style={styles.timeColumn}>Time</DataTable.Title>
+              <DataTable.Title style={styles.timeColumn}>Time Paid</DataTable.Title>
             </DataTable.Header>
 
             {groupedTransactions[date].map((transaction, index) => (
@@ -64,13 +65,14 @@ const TransactionTable = ({ transactions }) => {
                 key={index}
                 onPress={() => showDetails(transaction)}
               >
+                <DataTable.Cell>{transaction.transactionCode}</DataTable.Cell>
                 <DataTable.Cell>{transaction.name}</DataTable.Cell>
                 <DataTable.Cell>{transaction.phoneNumber}</DataTable.Cell>
                 <DataTable.Cell style={styles.amountColumn}>
                   {transaction.amountPaid}
                 </DataTable.Cell>
                 <DataTable.Cell style={styles.timeColumn}>
-                  {formatTime(transaction.timestamp)}
+                  {transaction.timePaid}
                 </DataTable.Cell>
               </DataTable.Row>
             ))}
@@ -85,11 +87,11 @@ const TransactionTable = ({ transactions }) => {
           <Dialog.Content>
             {selectedTransaction && (
               <View style={styles.modalContent}>
+                <Text>Transaction Code: {selectedTransaction.transactionCode}</Text>
                 <Text>Name: {selectedTransaction.name}</Text>
                 <Text>Number: {selectedTransaction.phoneNumber}</Text>
                 <Text>Amount: {selectedTransaction.amountPaid}</Text>
-                <Text>Time: {formatTime(selectedTransaction.timestamp)}</Text>
-                {/* Add more fields as needed */}
+                <Text>Time Paid: {selectedTransaction.timePaid}</Text>
               </View>
             )}
           </Dialog.Content>
