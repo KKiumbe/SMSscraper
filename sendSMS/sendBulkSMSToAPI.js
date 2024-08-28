@@ -1,10 +1,12 @@
 import axios from 'axios';
-import { BULK_SMS_ENDPOINT} from '@env';
+//import { BULK_SMS_ENDPOINT} from '@env';
+import Config from 'react-native-config';
 
 // Function to send SMS via API
 export const sendSmsViaApi = async (requestBody) => {
   try {
-    const response = await axios.post(BULK_SMS_ENDPOINT, requestBody);
+    const response = await axios.post(Config.BULK_SMS_ENDPOINT, requestBody);
+    console.log(Config.BULK_SMS_ENDPOINT)
 
     if (response.data.responses) {
       response.data.responses.forEach((res) => {

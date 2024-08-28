@@ -26,6 +26,7 @@
     "react-native": "0.75.1",
     "react-native-android-sms-listener": "^0.8.0",
     "react-native-circular-progress-indicator": "^4.4.2",
+    "react-native-config": "^1.5.3",
     "react-native-dotenv": "^3.4.11",
     "react-native-elements": "^3.4.3",
     "react-native-gesture-handler": "^2.18.1",

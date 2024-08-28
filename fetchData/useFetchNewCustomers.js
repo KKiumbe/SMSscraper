@@ -1,38 +1,42 @@
 import { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot, Timestamp } from 'firebase/firestore';
+import { collection, query, getDocs } from 'firebase/firestore';
 import { db } from '../config/firebaseConfig';
 
-const useFetchNewCustomers = () => {
-  const [newCustomers, setNewCustomers] = useState(0);
+const useFetchNewCustomersCount = () => {
+  const [countNewCustomers, setCountNewCustomers] = useState(0);
 
   useEffect(() => {
-    const fetchNewCustomers = () => {
-      const now = new Date();
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const fetchNewCustomersCount = async () => {
+      try {
+        // Get current month and year
+        const now = new Date();
+        const month = now.getMonth() + 1; // Months are 0-based, so +1 for human-readable month
+        const year = now.getFullYear();   // Current year
 
-      const allContactsQuery = collection(db, 'smsDetails');
-      const newCustomersQuery = query(
-        allContactsQuery,
-        where('timestamp', '>=', Timestamp.fromDate(startOfMonth)),
-        where('timestamp', '<=', Timestamp.fromDate(endOfMonth))
-      );
+        // Format collection name
+        const collectionName = `NewCustomers_${year}_${month}`;
+        const newCustomersCollectionRef = collection(db, collectionName);
+        const q = query(newCustomersCollectionRef);
 
-      const unsubscribe = onSnapshot(newCustomersQuery, (snapshot) => {
-        setNewCustomers(snapshot.size);
-      }, (error) => {
-        console.error('Error fetching new customers:', error);
-        setNewCustomers(0);
-      });
+        // Fetch documents with getDocs
+        const querySnapshot = await getDocs(q);
 
-      // Clean up subscription on unmount
-      return () => unsubscribe();
+        // Log the size of the snapshot
+        console.log("Snapshot size:", querySnapshot.size);
+
+        // Set the count of new customers
+        setCountNewCustomers(querySnapshot.size);
+
+      } catch (error) {
+        console.error('Error fetching new customers count:', error);
+        setCountNewCustomers(0); // Set count to 0 on error
+      }
     };
 
-    fetchNewCustomers();
-  }, []);
+    fetchNewCustomersCount();
+  }, []); // Empty dependency array means this effect runs once on component mount
 
-  return newCustomers;
+  return countNewCustomers;
 };
 
-export default useFetchNewCustomers;
+export default useFetchNewCustomersCount;

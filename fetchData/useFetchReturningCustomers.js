@@ -1,78 +1,63 @@
 import { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot, Timestamp } from 'firebase/firestore';
+import { collection, query, onSnapshot } from 'firebase/firestore';
 import { db } from '../config/firebaseConfig';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const useFetchReturningCustomers = () => {
   const [returningCustomers, setReturningCustomers] = useState([]);
+  const [countReturning, setCountReturning] = useState(0);
 
   useEffect(() => {
     const fetchReturningCustomers = async () => {
       try {
-        // Check local storage for cached data
-        const cachedData = await AsyncStorage.getItem('returningCustomers');
-        if (cachedData) {
-          setReturningCustomers(JSON.parse(cachedData));
-        }
-
         const transactionsCollectionRef = collection(db, 'Transactions');
-        const now = new Date();
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        const q = query(transactionsCollectionRef);
 
-        const q = query(
-          transactionsCollectionRef,
-          where('timestamp', '>=', Timestamp.fromDate(startOfMonth)),
-          where('timestamp', '<=', Timestamp.fromDate(endOfMonth))
-        );
-
-        const unsubscribe = onSnapshot(q, async (querySnapshot) => {
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
           const customerTransactionCount = {};
 
           querySnapshot.forEach((doc) => {
             const data = doc.data();
             const phoneNumber = data.phoneNumber;
-            const name = data.name;  // Assuming 'name' is stored in the transaction document
+            const name = data.name;
 
             if (!customerTransactionCount[phoneNumber]) {
               customerTransactionCount[phoneNumber] = {
                 name,
-                count: 0
+                count: 0,
               };
             }
 
             customerTransactionCount[phoneNumber].count++;
           });
 
-          const returningCustomersData = Object.values(customerTransactionCount)
-            .filter(customer => customer.count > 2)
-            .map(customer => ({
+          const returningCustomersData = Object.entries(customerTransactionCount)
+            .filter(([_, customer]) => customer.count > 2)
+            .map(([phoneNumber, customer]) => ({
               name: customer.name,
-              phoneNumber: customer.phoneNumber,
+              phoneNumber: phoneNumber,
+              transactionCount: customer.count,
             }));
 
           setReturningCustomers(returningCustomersData);
-
-          // Cache the data in local storage
-          await AsyncStorage.setItem('returningCustomers', JSON.stringify(returningCustomersData));
-          console.log(returningCustomersData);
+          setCountReturning(returningCustomersData.length);
         }, (error) => {
           console.error('Error retrieving returning customers:', error);
           setReturningCustomers([]);
+          setCountReturning(0);
         });
 
-        // Clean up subscription on unmount
         return () => unsubscribe();
       } catch (error) {
         console.error('Error fetching returning customers:', error);
         setReturningCustomers([]);
+        setCountReturning(0);
       }
     };
 
     fetchReturningCustomers();
   }, []);
 
-  return returningCustomers;
+  return { customers: returningCustomers, countReturning };
 };
 
 export default useFetchReturningCustomers;

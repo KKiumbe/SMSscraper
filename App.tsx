@@ -105,7 +105,9 @@ const App = () => {
       try {
         const extractedDataList = await readSms();
         for (const extractedData of extractedDataList) {
+          await saveTransactionToFirestore(extractedData);
           await saveSmsDetailsLocally(extractedData);
+        
         }
 
         setExtractedData(extractedDataList);

@@ -1,55 +1,35 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Button, TextInput, Alert, StyleSheet } from 'react-native';
-import useFetchNewCustomers from '../fetchData/useFetchNewCustomers';
-import useFetchReturningCustomers from '../fetchData/useFetchReturningCustomers';
-import useFetchCustomerCount from '../fetchData/useFetchCustomerCount';
+import { View, Text, Button, Alert, StyleSheet } from 'react-native';
+
+
 import { SMS_API_KEY, PARTNER_ID, SHORTCODE } from '@env';
+import useFetchCustomerCount from '../fetchData/useFetchCustomerCount';
 import { sendSmsViaApi } from './sendBulkSMSToAPI';
-import GroupSelector from './GroupSelector';
+import AccountBalance from '../componets/accountBalance/AccountBalance';
+import { TextInput } from 'react-native-paper';
 
 
 
 const SendBulkSms = () => {
-  const [selectedGroup, setSelectedGroup] = useState(null);
   const [smsContent, setSmsContent] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [customerCount, setCustomerCount] = useState(0);
 
-  const { customers: newCustomers } = useFetchNewCustomers('new');
-  const { customers: returningCustomers } = useFetchReturningCustomers('returning');
-  const { customers: allCustomers } = useFetchCustomerCount('all');
+  // Fetch all customers
+  const { customers: allCustomers } = useFetchCustomerCount();
 
   useEffect(() => {
-    if (selectedGroup) {
-      let count = 0;
-      if (selectedGroup.id === 'all') {
-        count = allCustomers.length;
-      } else if (selectedGroup.id === 'new') {
-        count = newCustomers.length;
-      } else if (selectedGroup.id === 'returning') {
-        count = returningCustomers.length;
-      }
-      setCustomerCount(count);
-    }
-  }, [selectedGroup, newCustomers, returningCustomers, allCustomers]);
+    setCustomerCount(allCustomers.length);
+  }, [allCustomers]);
 
   const handleSendSms = async () => {
-    if (!selectedGroup || smsContent.trim() === '') {
-      Alert.alert('Error', 'Please select a group and enter SMS content.');
+    if (smsContent.trim() === '') {
+      Alert.alert('Error', 'Please enter SMS content.');
       return;
     }
 
-    let customersToContact = [];
-
-    if (selectedGroup.id === 'all') {
-      customersToContact = allCustomers;
-    } else if (selectedGroup.id === 'new') {
-      customersToContact = newCustomers;
-    } else if (selectedGroup.id === 'returning') {
-      customersToContact = returningCustomers;
-    }
-
-    const smsList = customersToContact.map((customer, index) => ({
+    // Create SMS list
+    const smsList = allCustomers.map((customer, index) => ({
       partnerID: PARTNER_ID,
       apikey: SMS_API_KEY,
       pass_type: 'plain',
@@ -70,9 +50,9 @@ const SendBulkSms = () => {
 
     try {
       await sendSmsViaApi(requestBody);
-      Alert.alert('Success', 'SMS sent to selected group.');
+      Alert.alert('Success', 'SMS sent to all customers.');
     } catch (error) {
-      Alert.alert('Error', 'Failed to send SMS.');
+      Alert.alert('Error', `Failed to send SMS: ${error.message}`);
     } finally {
       setIsSending(false);
     }
@@ -80,35 +60,32 @@ const SendBulkSms = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Send Bulk SMS</Text>
+      <AccountBalance />
+      <Text style={styles.title}>SMS all Your Clients</Text>
 
       <TextInput
-        style={styles.input}
+        mode="outlined"
+        label="SMS Content"
         placeholder="Type your message here with {name} for customer's name..."
         multiline
-        numberOfLines={4}
+        numberOfLines={12}
         value={smsContent}
         onChangeText={setSmsContent}
+        style={styles.input}
       />
 
-      <Text style={styles.subtitle}>Select Group:</Text>
-      <GroupSelector
-        selectedGroup={selectedGroup}
-        setSelectedGroup={setSelectedGroup}
-      />
+      <Text style={styles.count}>
+        Number of customers to receive SMS: {customerCount}
+      </Text>
 
-      {selectedGroup && (
-        <Text style={styles.count}>
-          Number of customers to receive SMS: {customerCount}
-        </Text>
-      )}
-
-      <Button
-        title={isSending ? 'Sending...' : 'Send SMS'}
-        onPress={handleSendSms}
-        disabled={isSending}
-        color='tomato'
-      />
+      <View style={styles.buttonContainer}>
+        <Button
+          title={isSending ? 'Sending...' : 'Send SMS'}
+          onPress={handleSendSms}
+          disabled={isSending}
+          color='#4CAF50' // Light Green
+        />
+      </View>
     </View>
   );
 };
@@ -122,24 +99,18 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  subtitle: {
-    fontSize: 18,
-    marginVertical: 8,
+    marginBottom: 12, // Reduced margin to bring elements closer
   },
   input: {
-    height: 100,
-    borderColor: '#ddd',
-    borderWidth: 1,
-    marginBottom: 16,
-    padding: 8,
-    textAlignVertical: 'top',
+    marginBottom: 12, // Reduced margin to bring elements closer
   },
   count: {
     fontSize: 16,
     marginVertical: 8,
     color: 'green',
+  },
+  buttonContainer: {
+    marginTop: 16, // Reduced space above the button
   },
 });
 
