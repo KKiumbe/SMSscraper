@@ -7,7 +7,7 @@ const uploadPendingData = async () => {
   const netInfo = await NetInfo.fetch();
   if (netInfo.isConnected) {
     try {
-      const pendingData = JSON.parse(await AsyncStorage.getItem('pendingSmsDetails')) || [];
+      const pendingData = JSON.parse(await AsyncStorage.getItem('SmsDetails')) || [];
       const smsCollectionRef = collection(db, 'smsDetails');
 
       for (let i = 0; i < pendingData.length; i++) {
