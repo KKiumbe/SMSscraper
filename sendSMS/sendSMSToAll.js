@@ -4,10 +4,9 @@ import { View, Text, Button, Alert, StyleSheet } from 'react-native';
 
 import { SMS_API_KEY, PARTNER_ID, SHORTCODE } from '@env';
 import useFetchCustomerCount from '../fetchData/useFetchCustomerCount';
-import { sendSmsViaApi } from './sendBulkSMSToAPI';
+import { sendBulkSmsToAPI} from './sendBulkSMSToAPI';
 import AccountBalance from '../componets/accountBalance/AccountBalance';
 import { TextInput } from 'react-native-paper';
-
 
 
 const SendBulkSms = () => {
@@ -49,7 +48,7 @@ const SendBulkSms = () => {
     setIsSending(true);
 
     try {
-      await sendSmsViaApi(requestBody);
+      await sendBulkSmsToAPI(requestBody); // Use the updated sendBulkSms function
       Alert.alert('Success', 'SMS sent to all customers.');
     } catch (error) {
       Alert.alert('Error', `Failed to send SMS: ${error.message}`);
