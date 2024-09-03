@@ -1,81 +1,103 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+This is a react native APP that helps more than 10 business in nairobi save their customer records, works by reading SMS from specific payment channels to save customers profiles 
 
-# Getting Started
+i use SmsAndroid package from react-native-get-sms-android;
 
->**Note**: Make sure you have completed the [React Native - Environment Setup](https://reactnative.dev/docs/environment-setup) instructions till "Creating a new application" step, before proceeding.
+saves data in an array 
+SmsAndroid.list(
+      JSON.stringify(filter),
+      (fail) => {
+        console.log('Failed with this error: ' + fail);
+        reject(fail);
+      },
+      (count, smsList) => {
+        console.log('Count: ', count);
+        const arr = JSON.parse(smsList);
 
-## Step 1: Start the Metro Server
+        const filteredSms = arr.filter((sms) =>
+          sms.address === 'MPESA' || sms.address === '+1 650 5556789'
+        );
 
-First, you will need to start **Metro**, the JavaScript _bundler_ that ships _with_ React Native.
+        const allExtractedData = filteredSms.map((sms) => {
+          console.log('Filtered SMS:', sms);
+          const extractedData = extractSmsDetails(sms.body);
+          console.log('Extracted Data:', extractedData);
+          return extractedData;
+        });
 
-To start Metro, run the following command from the _root_ of your React Native project:
+        resolve(allExtractedData);
 
-```bash
-# using npm
-npm start
+for data storage and retrieval, i use firebase 
 
-# OR using Yarn
-yarn start
-```
 
-## Step 2: Start your Application
+import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
+import { db } from '../config/firebaseConfig';
 
-Let Metro Bundler run in its _own_ terminal. Open a _new_ terminal from the _root_ of your React Native project. Run the following command to start your _Android_ or _iOS_ app:
+const saveTransactionToFirestore = async (data) => {
+  if (!data || !data.transactionCode) {
+    console.error('Invalid data: Data is null or missing transactionCode.');
+    return;
+  }
 
-### For Android
+  try {
+    const transactionsCollectionRef = collection(db, 'Transactions');
+    
+    // Check if transaction with the same transactionCode already exists
+    const q = query(transactionsCollectionRef, where('transactionCode', '==', data.transactionCode));
+    const querySnapshot = await getDocs(q);
 
-```bash
-# using npm
-npm run android
+    if (!querySnapshot.empty) {
+      console.log('Transaction with this transactionCode already exists.');
+      return;
+    }
 
-# OR using Yarn
-yarn android
-```
+    // Save the transaction
+    await addDoc(transactionsCollectionRef, {
+      ...data,
+      timestamp: new Date().getTime(),  // Store the timestamp in milliseconds
+    });
 
-### For iOS
+    // Save the new customer to a monthly collection
+    await addNewCustomerToMonthlyCollection(data);
 
-```bash
-# using npm
-npm run ios
+    console.log('Transaction saved successfully!');
+  } catch (error) {
+    console.error('Error saving transaction:', error);
+  }
+};
 
-# OR using Yarn
-yarn ios
-```
+const addNewCustomerToMonthlyCollection = async (data) => {
+  if (!data || !data.phoneNumber) {
+    console.error('Invalid data: Data is null or missing phoneNumber.');
+    return;
+  }
 
-If everything is set up _correctly_, you should see your new app running in your _Android Emulator_ or _iOS Simulator_ shortly provided you have set up your emulator/simulator correctly.
+  try {
+    const now = new Date();
+    const month = now.getMonth() + 1; // Months are 0-based, so add 1 to get 1-based month
+    const year = now.getFullYear();
 
-This is one way to run your app — you can also run it directly from within Android Studio and Xcode respectively.
+    // Create a collection name based on the current month and year
+    const collectionName = `NewCustomers_${year}_${month}`;
+    const newCustomersCollectionRef = collection(db, collectionName);
 
-## Step 3: Modifying your App
+    // Check if the customer already exists in the monthly collection
+    const q = query(newCustomersCollectionRef, where('phoneNumber', '==', data.phoneNumber));
+    const querySnapshot = await getDocs(q);
 
-Now that you have successfully run the app, let's modify it.
+    if (querySnapshot.empty) {
+      // Add a new document with customer details
+      await addDoc(newCustomersCollectionRef, {
+        phoneNumber: data.phoneNumber,
+        name: data.name,
+        addedAt: new Date(),  // Store the timestamp of addition
+      });
+      console.log('New customer added to monthly collection.');
+    } else {
+      console.log('Customer with this phone number already exists in the monthly collection.');
+    }
+  } catch (error) {
+    console.error('Error adding new customer to monthly collection:', error);
+  }
+};
 
-1. Open `App.tsx` in your text editor of choice and edit some lines.
-2. For **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Developer Menu** (<kbd>Ctrl</kbd> + <kbd>M</kbd> (on Window and Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (on macOS)) to see your changes!
-
-   For **iOS**: Hit <kbd>Cmd ⌘</kbd> + <kbd>R</kbd> in your iOS Simulator to reload the app and see your changes!
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [Introduction to React Native](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you can't get this to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
-# SMSscraper
-# SMSscraper
+export default saveTransactionToFirestore;
